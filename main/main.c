@@ -40,7 +40,6 @@ SOFTWARE. */
 #include "wifi.h"
 
 static const char *tag = "main.c";
-static int cmd_id;
 
 void app_main(void)
 {
@@ -76,14 +75,10 @@ void app_main(void)
 	
 	while(1)
 	{	
-		cmd_id = 0;
-		cmd_id = get_uart_cmd();
-		
-		switch(cmd_id)
+		switch(get_cmd_id())
 		{
 			case 1:
 				/* Initialize WiFi, register the WiFi events. */
-				configure_wifi("SSID", "Password");
 				init_wifi();
 				register_wifi_events();
 				
@@ -95,10 +90,9 @@ void app_main(void)
 				
 				/* Unregister the WiFi events. */
 				unregister_wifi_events();
-				break;
 		}
-		
-		vTaskDelay(configTICK_RATE_HZ / 4);	
+	
+		vTaskDelay(configTICK_RATE_HZ);	
 		ESP_LOGI(tag, "Tick!");
 	}
 	

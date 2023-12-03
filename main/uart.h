@@ -28,7 +28,7 @@ SOFTWARE. */
 #define UART_TASK_PRIORITY 12
 #define UART_TASK_STACK_SIZE 2048
 
-int get_uart_cmd(void);
+int get_cmd_id(void);
 void init_uart(void);
 void uart_event_task(void *parameters);
 

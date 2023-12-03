@@ -28,9 +28,10 @@ SOFTWARE. */
 #include "esp_log.h"
 
 #include "uart.h"
+#include "cmd.h"
 
-static bool rx_buf_changed;
 static const char *tag = "uart.c";
+static int cmd_id;
 static QueueHandle_t uart_q;
 static uint8_t *rx_buf;
 
@@ -46,19 +47,12 @@ static uart_config_t uart_config =
 	.stop_bits = UART_STOP_BITS_1
 };
 
-int get_uart_cmd(void)
+int get_cmd_id(void)
 {
-	if(rx_buf_changed)
-	{
-		rx_buf_changed = false;
+	int tmp_cmd_id = cmd_id;
+	cmd_id = 0;
 	
-		if(strcmp((char *)rx_buf, "wifi"))
-		{
-			return 1;
-		}
-	}
-	
-	return 0;
+	return tmp_cmd_id;
 }
 
 void init_uart(void)
@@ -92,8 +86,9 @@ void init_uart(void)
 void uart_event_task(void *parameters)
 {
 	uart_event_t uart_event;
+	
+	cmd_id = 0;
 	rx_buf = (uint8_t *)malloc(RX_BUF_SIZE);
-	rx_buf_changed = false;
 
 	/* Start the task loop. */
 	while(1) if
@@ -133,9 +128,7 @@ void uart_event_task(void *parameters)
 					portMAX_DELAY
 				);
 				
-				rx_buf_changed = true;
-				
-				ESP_LOGI(tag, "DATA: %s", rx_buf);
+				cmd_id = handle_cmd((char *)rx_buf);
 				break;
 				
 			case UART_DATA_BREAK:

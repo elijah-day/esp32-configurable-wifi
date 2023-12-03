@@ -93,6 +93,9 @@ void configure_wifi(const char *ssid, const char *password)
 {
 	strcpy((char *)wifi_config.sta.password, password);
 	strcpy((char *)wifi_config.sta.ssid, ssid);
+	
+	ESP_LOGI(tag, "New SSID: \"%s\"", wifi_config.sta.ssid);
+	ESP_LOGI(tag, "New password: \"%s\"", wifi_config.sta.password);
 }
 
 void register_wifi_events(void)

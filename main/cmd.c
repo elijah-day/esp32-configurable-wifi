@@ -18,30 +18,59 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
-#ifndef WIFI_H
-#define WIFI_H
+#include <string.h>
+#include "esp_log.h"
 
-#define DEFAULT_MAC 0x58, 0xAB, 0x34, 0xCD, 0x56, 0xEF
-#define WIFI_CONNECTION_RETRY_MAX 10
-#define WIFI_FAILURE_BIT BIT1
-#define WIFI_SUCCESS_BIT BIT0
+#include "cmd.h"
+#include "wifi.h"
 
-#include "esp_event.h"
+static char args[CMD_ARG_MAX][CMD_ARG_SIZE];
+static const char *tag = "cmd.c";
 
-void check_wifi_bits(void);
-void configure_wifi(const char *ssid, const char *password);
-void register_wifi_events(void);
-void start_wifi(void);
-void init_wifi(void);
-void unregister_wifi_events(void);
+/* TODO: The int return values in this function are only temporary.  It seems
+that WiFi can only be initialized in the main loop, so the function needs to
+send some sort of response to notify main to init WiFi. */
+int handle_cmd(char *buf)
+{
+	int arg_cnt = 0;
+	int arg_pos = 0;
+	int buf_pos = 0;
 
-void wifi_event_handler
-(
-	void *event_handler_arg,
-	esp_event_base_t event_base,
-	int32_t event_id,
-	void *event_data
-);
-
-#endif /* WIFI_H */
-
+	/* Delimit the arguments in this loop. */
+	while(1)
+	{
+		if(arg_cnt >= CMD_ARG_MAX) break;
+		
+		if(arg_pos == CMD_ARG_SIZE)
+		{
+			args[arg_cnt][arg_pos] = '\0';
+			break;
+		}
+		
+		if(buf[buf_pos] == 10 || buf[buf_pos] == 32)
+		{
+			args[arg_cnt][arg_pos] = '\0';
+			arg_cnt++;
+			arg_pos = 0;
+			buf_pos++;
+			continue;
+		}
+	
+		args[arg_cnt][arg_pos] = buf[buf_pos];
+		
+		arg_pos++;
+		buf_pos++;
+	}
+		
+	if(strcmp(args[0], "wifi-cfg") == 0)
+	{	
+		configure_wifi(args[1], args[2]);
+	}
+	
+	if(strcmp(args[0], "wifi-start") == 0)
+	{	
+		return 1;
+	}
+	
+	return 0;
+}
