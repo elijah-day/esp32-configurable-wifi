@@ -29,7 +29,8 @@ static const char *tag = "cmd.c";
 
 /* TODO: The int return values in this function are only temporary.  It seems
 that WiFi can only be initialized in the main loop, so the function needs to
-send some sort of response to notify main to init WiFi. */
+send some sort of response to notify main to init WiFi.  Try to figure out a
+more standardized method. */
 int handle_cmd(char *buf)
 {
 	int arg_cnt = 0;
@@ -43,16 +44,26 @@ int handle_cmd(char *buf)
 		
 		if(arg_pos == CMD_ARG_SIZE)
 		{
-			args[arg_cnt][arg_pos] = '\0';
+			args[arg_cnt][arg_pos] = 0;
 			break;
 		}
 		
+		/* Replace DLE or Space with NUL. */
 		if(buf[buf_pos] == 10 || buf[buf_pos] == 32)
 		{
-			args[arg_cnt][arg_pos] = '\0';
+			args[arg_cnt][arg_pos] = 0;
 			arg_cnt++;
 			arg_pos = 0;
 			buf_pos++;
+			continue;
+		}
+		
+		/* Workaround for placing a space in one of the argument strings. */
+		if(buf[buf_pos] == 92 && buf[buf_pos + 1] == 32)
+		{
+			args[arg_cnt][arg_pos] = 32;
+			arg_pos++;
+			buf_pos += 2;
 			continue;
 		}
 	

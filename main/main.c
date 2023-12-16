@@ -38,6 +38,7 @@ SOFTWARE. */
 
 #include "uart.h"
 #include "wifi.h"
+#include "net.h"
 
 static const char *tag = "main.c";
 
@@ -90,6 +91,9 @@ void app_main(void)
 				
 				/* Unregister the WiFi events. */
 				unregister_wifi_events();
+				
+				/* Start the server. */
+				init_server();
 		}
 	
 		vTaskDelay(configTICK_RATE_HZ);	
